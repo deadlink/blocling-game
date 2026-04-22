@@ -1,4 +1,4 @@
-import { Application } from 'pixi.js'
+import { Application, Assets } from 'pixi.js'
 import './style.css'
 import { Game } from './game/Game'
 import { GAME_CONFIG } from './game/config'
@@ -22,6 +22,8 @@ const bootstrap = async (): Promise<void> => {
 
   app.canvas.style.imageRendering = 'pixelated'
   host.appendChild(app.canvas)
+
+  await Assets.load(['/assets/sprites/room_sheet.png', '/assets/sprites/router_sheet.png'])
 
   const game = new Game(app)
   game.start()

@@ -11,6 +11,7 @@ import { MatchState, type MatchStatus } from './state/MatchState'
 
 type ActiveSignal = {
   entity: SignalIcon
+  routerId: string
 }
 
 export class Game {
@@ -19,6 +20,7 @@ export class Game {
   private readonly playfield = new Container()
   private readonly signalLayer = new Container()
   private readonly network = new NetworkGraph()
+  private readonly grid = new GridView(this.network)
   private readonly clickCatcher = new ClickCatcher()
   private readonly hud = new HudView()
   private readonly audio = new AudioSystem()
@@ -31,8 +33,7 @@ export class Game {
 
   constructor(app: Application) {
     this.app = app
-    const grid = new GridView(this.network)
-    this.playfield.addChild(grid.container, this.signalLayer)
+    this.playfield.addChild(this.grid.container, this.signalLayer, this.grid.routerOverlay)
     this.root.addChild(this.playfield, this.hud.container)
     this.app.stage.addChild(this.root)
     this.bindKeys()
@@ -59,6 +60,8 @@ export class Game {
   }
 
   private update(deltaMs: number): void {
+    this.grid.update(deltaMs / 1000)
+
     if (this.status === 'running') {
       this.spawnSignals(deltaMs)
       this.tickSignals(deltaMs / 1000)
@@ -87,13 +90,13 @@ export class Game {
 
   private createSignal(type: SignalType, apartmentId: string, routerId: string): void {
     const settings = GAME_CONFIG.difficulty[this.difficulty]
-    const path = this.network.getPath(apartmentId, routerId)
+    const path = this.network.getApartmentConnectionPath(apartmentId)
     if (path.length < 2) {
       return
     }
 
     const entity = new SignalIcon(type, path, settings.signalSpeed[type])
-    const active: ActiveSignal = { entity }
+    const active: ActiveSignal = { entity, routerId }
     this.signalLayer.addChild(entity)
     this.activeSignals.add(active)
     this.matchState.registerSpawn()
@@ -104,6 +107,7 @@ export class Game {
         return
       }
       this.matchState.registerCaught()
+      this.audio.playCaughtSfx()
       this.removeSignal(active)
     })
   }
@@ -115,6 +119,8 @@ export class Game {
         continue
       }
       this.matchState.registerMissed()
+      this.grid.markRouterAlert(signal.routerId)
+      this.audio.playMissedSfx()
       this.removeSignal(signal)
     }
   }

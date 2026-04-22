@@ -50,6 +50,46 @@ export class AudioSystem {
     osc.stop(now + 0.18)
   }
 
+  playCaughtSfx(): void {
+    if (!this.unlocked || !this.context) {
+      return
+    }
+
+    const now = this.context.currentTime
+    const osc = this.context.createOscillator()
+    const gain = this.context.createGain()
+    osc.type = 'square'
+    osc.frequency.setValueAtTime(820, now)
+    osc.frequency.exponentialRampToValueAtTime(1280, now + 0.08)
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1)
+    osc.connect(gain)
+    gain.connect(this.context.destination)
+    osc.start(now)
+    osc.stop(now + 0.11)
+  }
+
+  playMissedSfx(): void {
+    if (!this.unlocked || !this.context) {
+      return
+    }
+
+    const now = this.context.currentTime
+    const osc = this.context.createOscillator()
+    const gain = this.context.createGain()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(240, now)
+    osc.frequency.exponentialRampToValueAtTime(92, now + 0.32)
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(0.13, now + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.33)
+    osc.connect(gain)
+    gain.connect(this.context.destination)
+    osc.start(now)
+    osc.stop(now + 0.34)
+  }
+
   startBgm(): void {
     if (!this.unlocked || !this.context || this.bgmTimer !== null) {
       return

@@ -7,6 +7,8 @@ export class SignalIcon extends Container {
   private readonly path: Vec2[]
   private readonly speed: number
   private segmentIndex = 0
+  private animTime = 0
+  private readonly glow: Graphics
 
   constructor(signalType: SignalType, path: Vec2[], speed: number) {
     super()
@@ -14,29 +16,31 @@ export class SignalIcon extends Container {
     this.path = path
     this.speed = speed
 
-    const color = signalType === 'vpn' ? GAME_CONFIG.colors.vpn : GAME_CONFIG.colors.proxy
-    const circle = new Graphics()
-    circle
-      .circle(0, 0, 10)
-      .fill(color)
-      .stroke({ color: 0x121212, width: 2 })
+    const color =
+      signalType === 'vpn'
+        ? GAME_CONFIG.colors.vpn
+        : GAME_CONFIG.colors.proxy
+    const strokeWidth = 1.2
 
-    const marker = new Text({
-      text: signalType === 'vpn' ? 'V' : 'P',
-      style: {
-        fill: 0x0f1118,
-        fontSize: 10,
-        fontFamily: 'Courier New',
-        fontWeight: '700'
-      }
-    })
-    marker.anchor.set(0.5)
+    this.glow = new Graphics()
+    this.glow.roundRect(-42, -24, 84, 48, 8).fill({ color, alpha: 0.12 })
 
-    this.addChild(circle, marker)
+    const body = new Graphics()
+    body
+      .roundRect(-40, -22, 80, 44, 6)
+      .fill(0x111a28)
+      .stroke({ color, width: strokeWidth })
+
+    const symbol = signalType === 'vpn' ? this.createVpnLabel() : this.createProxyLabel()
+    this.addChild(this.glow, body, symbol)
     this.position.set(path[0].x, path[0].y)
   }
 
   update(deltaSec: number): boolean {
+    this.animTime += deltaSec
+    this.scale.set(1 + Math.sin(this.animTime * 8) * 0.04)
+    this.glow.alpha = 0.18 + Math.max(0, Math.sin(this.animTime * 9)) * 0.22
+
     let budget = this.speed * deltaSec
     while (budget > 0 && this.segmentIndex < this.path.length - 1) {
       const to = this.path[this.segmentIndex + 1]
@@ -57,5 +61,37 @@ export class SignalIcon extends Container {
       }
     }
     return this.segmentIndex >= this.path.length - 1
+  }
+
+  private createVpnLabel(): Text {
+    const text = new Text({
+      text: 'VPN',
+      style: {
+        fontFamily: 'Courier New',
+        fontSize: 18,
+        fontWeight: '700',
+        fill: 0x66f2ff,
+        letterSpacing: 1.4
+      }
+    })
+    text.anchor.set(0.5)
+    text.y = 0.8
+    return text
+  }
+
+  private createProxyLabel(): Text {
+    const text = new Text({
+      text: 'PROXY',
+      style: {
+        fontFamily: 'Courier New',
+        fontSize: 13,
+        fontWeight: '700',
+        fill: 0xffd380,
+        letterSpacing: 1.1
+      }
+    })
+    text.anchor.set(0.5)
+    text.y = 0.8
+    return text
   }
 }

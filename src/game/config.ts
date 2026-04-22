@@ -10,16 +10,16 @@ type DifficultyConfig = {
 
 export const GAME_CONFIG = {
   viewport: {
-    width: 1240,
-    height: 860
+    width: 1900,
+    height: 1360
   },
   grid: {
-    cols: 7,
+    cols: 5,
     rows: 5,
-    cellWidth: 150,
-    cellHeight: 145,
-    originX: 170,
-    originY: 125
+    cellWidth: 300,
+    cellHeight: 240,
+    originX: 350,
+    originY: 200
   },
   colors: {
     background: 0x070b13,
@@ -42,19 +42,19 @@ export const GAME_CONFIG = {
       targetPercent: 0.7,
       spawnIntervalMs: [1350, 2100],
       attemptLimit: 35,
-      signalSpeed: { vpn: 140, proxy: 115 }
+      signalSpeed: { vpn: 88, proxy: 72 }
     },
     normal: {
       targetPercent: 0.8,
       spawnIntervalMs: [1000, 1650],
       attemptLimit: 42,
-      signalSpeed: { vpn: 165, proxy: 135 }
+      signalSpeed: { vpn: 102, proxy: 82 }
     },
     hard: {
       targetPercent: 0.9,
       spawnIntervalMs: [700, 1250],
       attemptLimit: 50,
-      signalSpeed: { vpn: 190, proxy: 155 }
+      signalSpeed: { vpn: 118, proxy: 95 }
     }
   } satisfies Record<Difficulty, DifficultyConfig>
 }

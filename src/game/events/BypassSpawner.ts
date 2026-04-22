@@ -23,18 +23,18 @@ export class BypassSpawner {
   update(deltaMs: number): SpawnEvent[] {
     this.timerMs += deltaMs
     const spawned: SpawnEvent[] = []
+
     while (this.timerMs >= this.nextSpawnMs) {
       this.timerMs -= this.nextSpawnMs
-      spawned.push(this.createEvent())
+      spawned.push(this.createThreatEvent())
       this.nextSpawnMs = this.randomInterval()
     }
     return spawned
   }
 
-  private createEvent(): SpawnEvent {
+  private createThreatEvent(): SpawnEvent {
     const apartmentId = this.graph.getRandomApartmentId()
-    const nearest = this.graph.getNearestRouterId(apartmentId)
-    const routerId = Math.random() > 0.65 ? nearest : this.graph.getRandomRouterId()
+    const routerId = this.graph.getConnectedRouterId(apartmentId)
     const type: SignalType = Math.random() > 0.45 ? 'vpn' : 'proxy'
     return { type, apartmentId, routerId }
   }
