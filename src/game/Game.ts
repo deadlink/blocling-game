@@ -48,6 +48,8 @@ export class Game {
 
   private difficulty: Difficulty = DEFAULT_DIFFICULTY
   private status: MatchStatus = 'running'
+  private started = false
+  private paused = false
   private matchState = new MatchState()
   private spawner = new BypassSpawner(this.difficulty, this.network)
   private readonly activeSignals = new Set<ActiveSignal>()
@@ -70,11 +72,40 @@ export class Game {
   }
 
   start(): void {
-    this.startRound()
+    this.hud.update(this.matchState, this.activeSignals.size, this.difficulty)
     this.app.ticker.add(() => this.update(this.app.ticker.deltaMS))
   }
 
+  startFromInput(): void {
+    if (this.started) {
+      return
+    }
+    this.started = true
+    this.startRound()
+  }
+
+  togglePause(): boolean {
+    if (!this.started) {
+      return false
+    }
+    this.paused = !this.paused
+    if (this.paused) {
+      this.audio.stopBgm()
+    } else {
+      this.audio.startBgm()
+    }
+    return this.paused
+  }
+
+  isStarted(): boolean {
+    return this.started
+  }
+
   private startRound(): void {
+    if (!this.started) {
+      return
+    }
+    this.paused = false
     this.status = 'running'
     this.matchState = new MatchState()
     this.spawner = new BypassSpawner(this.difficulty, this.network)
@@ -87,6 +118,11 @@ export class Game {
   }
 
   private update(deltaMs: number): void {
+    if (!this.started || this.paused) {
+      this.hud.update(this.matchState, this.activeSignals.size, this.difficulty)
+      return
+    }
+
     this.grid.update(deltaMs / 1000)
 
     if (this.status === 'running') {
@@ -187,15 +223,21 @@ export class Game {
       }
       if (event.code === 'Digit1') {
         this.difficulty = 'easy'
-        this.startRound()
+        if (this.started) {
+          this.startRound()
+        }
       }
       if (event.code === 'Digit2') {
         this.difficulty = 'normal'
-        this.startRound()
+        if (this.started) {
+          this.startRound()
+        }
       }
       if (event.code === 'Digit3') {
         this.difficulty = 'hard'
-        this.startRound()
+        if (this.started) {
+          this.startRound()
+        }
       }
     })
   }

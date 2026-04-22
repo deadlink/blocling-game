@@ -23,7 +23,7 @@ export class MatchState {
   }
 
   addScore(value: number): void {
-    this.score += value
+    this.score = Math.max(0, this.score + value)
   }
 
   maybeLevelUp(): boolean {

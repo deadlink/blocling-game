@@ -34,6 +34,7 @@ body {
   justify-content: center;
   min-width: 0;
   min-height: 0;
+  position: relative;
 }
 
 .hud-side {
@@ -89,5 +90,65 @@ canvas {
   height: auto;
   border: 2px solid #181d2b;
   box-shadow: 0 0 0 4px #0b0f18;
+  display: block;
+}
+
+.game-start-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  z-index: 4;
+}
+
+.game-start-overlay.is-hidden {
+  display: none;
+}
+
+.game-start-title {
+  font-size: clamp(20px, 2.2vw, 34px);
+  letter-spacing: 2px;
+}
+
+.game-start-action {
+  padding: 14px 22px;
+  border: 2px solid #fff;
+  font-size: clamp(16px, 1.4vw, 22px);
+  cursor: pointer;
+  user-select: none;
+}
+
+.game-start-action:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+
+.game-start-hint {
+  font-size: clamp(11px, 1vw, 14px);
+}
+
+.game-pause-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.78);
+  border: 2px solid #fff;
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(14px, 1.3vw, 20px);
+  letter-spacing: 1.5px;
+  z-index: 3;
+}
+
+.game-pause-overlay.is-visible {
   display: block;
 }
