@@ -7,3 +7,4 @@ const joinBase = (path: string): string => {
 
 export const ROOM_SHEET_URL = joinBase('assets/sprites/room_sheet.png')
 export const ROUTER_SHEET_URL = joinBase('assets/sprites/router_sheet.png')
+export const BGM_LOOP_URL = joinBase('assets/audio/bgm_loop.mp3')

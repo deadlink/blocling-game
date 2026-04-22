@@ -1,5 +1,5 @@
 export type Difficulty = 'easy' | 'normal' | 'hard'
-export type SignalType = 'vpn' | 'proxy'
+export type SignalType = 'vpn' | 'youtube' | 'telegram' | 'x' | 'pornhub'
 
 type DifficultyConfig = {
   targetPercent: number
@@ -32,7 +32,10 @@ export const GAME_CONFIG = {
     router: 0xbb68ff,
     routerCore: 0xf8e38f,
     vpn: 0x3bff9f,
-    proxy: 0xffa551,
+    youtube: 0xff3b3b,
+    telegram: 0x44bafc,
+    x: 0xd9d9d9,
+    pornhub: 0xff9800,
     hud: 0xd9e3ff,
     win: 0x74ff81,
     lose: 0xff6174
@@ -42,19 +45,19 @@ export const GAME_CONFIG = {
       targetPercent: 0.7,
       spawnIntervalMs: [1350, 2100],
       attemptLimit: 35,
-      signalSpeed: { vpn: 88, proxy: 72 }
+      signalSpeed: { vpn: 44, youtube: 44, telegram: 44, x: 44, pornhub: 44 }
     },
     normal: {
       targetPercent: 0.8,
       spawnIntervalMs: [1000, 1650],
       attemptLimit: 42,
-      signalSpeed: { vpn: 102, proxy: 82 }
+      signalSpeed: { vpn: 51, youtube: 51, telegram: 51, x: 51, pornhub: 51 }
     },
     hard: {
       targetPercent: 0.9,
       spawnIntervalMs: [700, 1250],
       attemptLimit: 50,
-      signalSpeed: { vpn: 118, proxy: 95 }
+      signalSpeed: { vpn: 59, youtube: 59, telegram: 59, x: 59, pornhub: 59 }
     }
   } satisfies Record<Difficulty, DifficultyConfig>
 }

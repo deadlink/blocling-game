@@ -3,9 +3,19 @@ import { GAME_CONFIG } from '../config'
 import type { NetworkGraph, Vec2 } from '../network/NetworkGraph'
 
 type RouterAnim = {
+  shell: Graphics
   leds: Graphics
+  boostMask: Graphics
   phase: number
   alertTimer: number
+  boosted: boolean
+  boostedAlpha: number
+}
+
+type ConnectionPath = {
+  apartmentId: string
+  routerId: string
+  path: Vec2[]
 }
 
 export class GridView {
@@ -17,18 +27,21 @@ export class GridView {
     phase: number
   }> = []
   private readonly routers = new Map<string, RouterAnim>()
-  private readonly connectionPaths: Vec2[][]
+  private readonly connectionPaths: ConnectionPath[]
   private readonly flowLayer = new Graphics()
+  private readonly boostedLayer = new Graphics()
+  private boostedPathKeys = new Set<string>()
   private flowPhase = 0
+  private onRouterTap?: (routerId: string) => void
 
   constructor(network: NetworkGraph) {
     this.connectionPaths = network
       .getApartmentConnectionPaths()
-      .map((item) => item.path)
-      .filter((path) => path.length > 1)
+      .filter((item) => item.path.length > 1)
 
     this.drawBuildingFacade()
     this.drawConnections()
+    this.container.addChild(this.boostedLayer)
     this.drawWindows(network)
     this.drawRouters(network)
     this.container.addChild(this.flowLayer)
@@ -59,6 +72,10 @@ export class GridView {
         router.leds.tint = 0x6dff85
         router.leds.alpha = 0.4 + pulse * 0.5
       }
+
+      router.shell.tint = 0xffffff
+      router.shell.alpha = 1
+      router.boostMask.alpha = router.boosted ? router.boostedAlpha : 0
     }
 
     this.flowPhase += deltaSec * 120
@@ -71,6 +88,25 @@ export class GridView {
       return
     }
     router.alertTimer = 0.9
+  }
+
+  setRouterTapHandler(handler: (routerId: string) => void): void {
+    this.onRouterTap = handler
+  }
+
+  setBoostedRoutes(routes: Array<{ apartmentId: string; routerId: string; closeProgress: number }>): void {
+    this.boostedPathKeys = new Set(routes.map((route) => this.routeKey(route.apartmentId, route.routerId)))
+    for (const [routerId, router] of this.routers) {
+      const route = routes.find((item) => item.routerId === routerId)
+      if (!route) {
+        router.boosted = false
+        router.boostedAlpha = 1
+        continue
+      }
+      router.boosted = true
+      router.boostedAlpha = Math.max(0.2, 1 - route.closeProgress / 5)
+    }
+    this.renderBoostedRoutes()
   }
 
   private drawBuildingFacade(): void {
@@ -111,10 +147,10 @@ export class GridView {
     const core = new Graphics()
     const highlight = new Graphics()
 
-    for (const path of this.connectionPaths) {
-      for (let i = 0; i < path.length - 1; i += 1) {
-        const from = path[i]
-        const to = path[i + 1]
+    for (const connection of this.connectionPaths) {
+      for (let i = 0; i < connection.path.length - 1; i += 1) {
+        const from = connection.path[i]
+        const to = connection.path[i + 1]
         shadow
           .moveTo(from.x, from.y)
           .lineTo(to.x, to.y)
@@ -279,11 +315,31 @@ export class GridView {
         .fill(0x6dff85)
       leds.alpha = 0.65
 
-      this.routerOverlay.addChild(shell, leds)
+      const boostMask = new Graphics()
+      boostMask
+        .roundRect(router.position.x - 24, router.position.y - 24, 48, 48, 4)
+        .fill({ color: 0x63ff8f, alpha: 0.95 })
+        .rect(router.position.x - 15, router.position.y - 15, 30, 12)
+        .fill({ color: 0xb8ffca, alpha: 0.9 })
+      boostMask.alpha = 0
+
+      const hitZone = new Graphics()
+      hitZone.circle(router.position.x, router.position.y, 32).fill({ color: 0xffffff, alpha: 0.001 })
+      hitZone.eventMode = 'static'
+      hitZone.cursor = 'pointer'
+      hitZone.on('pointertap', () => {
+        this.onRouterTap?.(router.id)
+      })
+
+      this.routerOverlay.addChild(shell, boostMask, leds, hitZone)
       this.routers.set(router.id, {
+        shell,
         leds,
+        boostMask,
         phase: Math.random() * Math.PI * 2,
-        alertTimer: 0
+        alertTimer: 0,
+        boosted: false,
+        boostedAlpha: 1
       })
     }
   }
@@ -295,11 +351,32 @@ export class GridView {
     const offset = this.flowPhase % cycle
 
     this.flowLayer.clear()
-    for (const path of this.connectionPaths) {
-      for (let i = 0; i < path.length - 1; i += 1) {
-        this.drawFlowSegment(path[i], path[i + 1], offset, dashLength, cycle)
+    for (const connection of this.connectionPaths) {
+      for (let i = 0; i < connection.path.length - 1; i += 1) {
+        this.drawFlowSegment(connection.path[i], connection.path[i + 1], offset, dashLength, cycle)
       }
     }
+  }
+
+  private renderBoostedRoutes(): void {
+    this.boostedLayer.clear()
+    for (const connection of this.connectionPaths) {
+      if (!this.boostedPathKeys.has(this.routeKey(connection.apartmentId, connection.routerId))) {
+        continue
+      }
+      for (let i = 0; i < connection.path.length - 1; i += 1) {
+        const from = connection.path[i]
+        const to = connection.path[i + 1]
+        this.boostedLayer
+          .moveTo(from.x, from.y)
+          .lineTo(to.x, to.y)
+          .stroke({ color: 0x64ff8f, width: 5.2, cap: 'round', join: 'round' })
+      }
+    }
+  }
+
+  private routeKey(apartmentId: string, routerId: string): string {
+    return `${apartmentId}|${routerId}`
   }
 
   private drawFlowSegment(from: Vec2, to: Vec2, offset: number, dashLength: number, cycle: number): void {

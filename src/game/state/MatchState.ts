@@ -1,27 +1,14 @@
-export type MatchStatus = 'running' | 'won' | 'lost'
+export type MatchStatus = 'running'
 
 export class MatchState {
-  readonly targetPercent: number
-  readonly attemptLimit: number
+  private static readonly LEVEL_SCORE_STEP = 100
+  score = 0
+  level = 1
   total = 0
   caught = 0
   missed = 0
 
-  constructor(targetPercent: number, attemptLimit: number) {
-    this.targetPercent = targetPercent
-    this.attemptLimit = attemptLimit
-  }
-
-  get caughtRatio(): number {
-    if (this.total === 0) {
-      return 1
-    }
-    return this.caught / this.total
-  }
-
-  get caughtPercent(): number {
-    return this.caughtRatio * 100
-  }
+  constructor() {}
 
   registerSpawn(): void {
     this.total += 1
@@ -35,18 +22,30 @@ export class MatchState {
     this.missed += 1
   }
 
-  resolveStatus(activeSignals: number): MatchStatus {
-    const maxPossibleCaught = this.caught + (this.attemptLimit - this.total)
-    const maxPossibleRatio = maxPossibleCaught / this.attemptLimit
+  addScore(value: number): void {
+    this.score += value
+  }
 
-    if (maxPossibleRatio < this.targetPercent) {
-      return 'lost'
+  maybeLevelUp(): boolean {
+    const threshold = this.level * MatchState.LEVEL_SCORE_STEP
+    if (this.score >= threshold) {
+      this.level += 1
+      return true
     }
+    return false
+  }
 
-    if (this.total >= this.attemptLimit && activeSignals === 0) {
-      return this.caughtRatio >= this.targetPercent ? 'won' : 'lost'
-    }
+  get nextLevelScore(): number {
+    return this.level * MatchState.LEVEL_SCORE_STEP
+  }
 
+  get progressToNextLevel(): number {
+    const previousThreshold = (this.level - 1) * MatchState.LEVEL_SCORE_STEP
+    const span = MatchState.LEVEL_SCORE_STEP
+    return Math.max(0, Math.min(1, (this.score - previousThreshold) / span))
+  }
+
+  resolveStatus(): MatchStatus {
     return 'running'
   }
 }

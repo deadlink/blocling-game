@@ -1,77 +1,141 @@
 import { Container, Graphics, Text } from 'pixi.js'
 import { GAME_CONFIG, type Difficulty } from '../game/config'
-import type { MatchState, MatchStatus } from '../game/state/MatchState'
+import type { MatchState } from '../game/state/MatchState'
 
 export class HudView {
   readonly container = new Container()
   private readonly statsText: Text
   private readonly statusText: Text
   private readonly hintText: Text
+  private readonly scoreText: Text
+  private readonly levelText: Text
+  private readonly progressBar: Graphics
 
   constructor() {
-    const panel = new Graphics()
-    panel
-      .roundRect(20, 18, GAME_CONFIG.viewport.width - 40, 78, 10)
-      .fill({ color: 0x080d17, alpha: 0.9 })
-      .stroke({ color: 0x2c3d63, width: 2 })
+    const sidebarWidth = 340
+    const sidebarHeight = GAME_CONFIG.viewport.height - 40
+
+    const leftPanel = new Graphics()
+    leftPanel
+      .rect(6, 20, sidebarWidth, sidebarHeight)
+      .fill({ color: 0x000000, alpha: 0.98 })
+      .rect(12, 26, sidebarWidth - 12, 44)
+      .fill(0x000000)
+
+    const rightPanel = new Graphics()
+    rightPanel
+      .rect(GAME_CONFIG.viewport.width - sidebarWidth - 6, 20, sidebarWidth, sidebarHeight)
+      .fill({ color: 0x000000, alpha: 0.98 })
+      .rect(GAME_CONFIG.viewport.width - sidebarWidth, 26, sidebarWidth - 12, 44)
+      .fill(0x000000)
 
     this.statsText = new Text({
       text: '',
       style: {
-        fill: GAME_CONFIG.colors.hud,
-        fontSize: 20,
-        fontFamily: 'Courier New',
-        fontWeight: '700'
+        fill: 0xffffff,
+        fontSize: 18,
+        fontFamily: 'monospace',
+        fontWeight: '700',
+        letterSpacing: 1.4,
+        lineHeight: 30
       }
     })
-    this.statsText.position.set(34, 36)
+    this.statsText.position.set(16, 90)
 
     this.statusText = new Text({
       text: '',
       style: {
-        fill: GAME_CONFIG.colors.hud,
-        fontSize: 20,
-        fontFamily: 'Courier New',
-        fontWeight: '700'
+        fill: 0xffffff,
+        fontSize: 24,
+        fontFamily: 'monospace',
+        fontWeight: '700',
+        letterSpacing: 2.2
       }
     })
-    this.statusText.position.set(34, 62)
+    this.statusText.position.set(24, 35)
 
     this.hintText = new Text({
       text: '',
       style: {
-        fill: 0x93a6cf,
-        fontSize: 14,
-        fontFamily: 'Courier New'
+        fill: 0xffffff,
+        fontSize: 16,
+        fontFamily: 'monospace',
+        fontWeight: '700',
+        lineHeight: 28
       }
     })
-    this.hintText.position.set(GAME_CONFIG.viewport.width - 470, 62)
+    this.hintText.position.set(16, 380)
 
-    this.container.addChild(panel, this.statsText, this.statusText, this.hintText)
+    this.scoreText = new Text({
+      text: '',
+      style: {
+        fill: 0xffffff,
+        fontSize: 25,
+        fontFamily: 'monospace',
+        fontWeight: '700',
+        letterSpacing: 2.2,
+        lineHeight: 38
+      }
+    })
+    this.scoreText.position.set(GAME_CONFIG.viewport.width - 336, 90)
+
+    this.levelText = new Text({
+      text: '',
+      style: {
+        fill: 0xffffff,
+        fontSize: 18,
+        fontFamily: 'monospace',
+        fontWeight: '700',
+        letterSpacing: 1.4,
+        lineHeight: 30
+      }
+    })
+    this.levelText.position.set(GAME_CONFIG.viewport.width - 336, 380)
+
+    this.progressBar = new Graphics()
+
+    this.container.addChild(
+      leftPanel,
+      rightPanel,
+      this.statsText,
+      this.statusText,
+      this.hintText,
+      this.scoreText,
+      this.levelText,
+      this.progressBar
+    )
   }
 
-  update(matchState: MatchState, status: MatchStatus, activeSignals: number, difficulty: Difficulty): void {
-    const target = Math.round(matchState.targetPercent * 100)
+  update(matchState: MatchState, activeSignals: number, difficulty: Difficulty): void {
     this.statsText.text = [
-      `MODE: ${difficulty.toUpperCase()}`,
-      `CAUGHT: ${matchState.caught}`,
-      `MISSED: ${matchState.missed}`,
-      `ACTIVE: ${activeSignals}`,
-      `PROGRESS: ${matchState.total}/${matchState.attemptLimit}`,
-      `RATIO: ${matchState.caughtPercent.toFixed(1)}% / ${target}%`
-    ].join('   ')
+      `MODE`,
+      `${difficulty.toUpperCase()}`,
+      `LEVEL`,
+      `${matchState.level}`,
+      `ACTIVE`,
+      `${activeSignals}`,
+      `CAUGHT`,
+      `${matchState.caught}`,
+      `MISSED`,
+      `${matchState.missed}`
+    ].join('\n')
 
-    if (status === 'running') {
-      this.statusText.style.fill = GAME_CONFIG.colors.hud
-      this.statusText.text = 'STATUS: MONITORING TRAFFIC'
-    } else if (status === 'won') {
-      this.statusText.style.fill = GAME_CONFIG.colors.win
-      this.statusText.text = 'STATUS: WIN - 80%+ BYPASS BLOCKED'
-    } else {
-      this.statusText.style.fill = GAME_CONFIG.colors.lose
-      this.statusText.text = 'STATUS: LOSS - TOO MANY SIGNALS PASSED'
-    }
+    this.statusText.text = 'NET DEF'
 
-    this.hintText.text = 'CLICK SIGNALS | R TO RESTART | 1/2/3 DIFFICULTY'
+    this.hintText.text = ['VPN +10', 'PROXY +5', 'YT/TG -2', 'ROUTER x5'].join('\n')
+
+    this.scoreText.text = ['SCORE', `${Math.floor(matchState.score)}`].join('\n')
+    this.levelText.text = ['NEXT', `${matchState.nextLevelScore}`, 'PROGRESS'].join('\n')
+
+    const barX = GAME_CONFIG.viewport.width - 336
+    const barY = 520
+    const barW = 146
+    const progress = matchState.progressToNextLevel
+    this.progressBar.clear()
+    this.progressBar
+      .rect(barX, barY, barW, 14)
+      .fill(0x000000)
+      .rect(barX + 2, barY + 2, (barW - 4) * progress, 10)
+      .fill(0xffffff)
   }
 }
