@@ -1,5 +1,6 @@
 import { Application, Assets } from 'pixi.js'
 import './style.css'
+import { ROOM_SHEET_URL, ROUTER_SHEET_URL } from './game/assetPaths'
 import { Game } from './game/Game'
 import { GAME_CONFIG } from './game/config'
 
@@ -23,7 +24,7 @@ const bootstrap = async (): Promise<void> => {
   app.canvas.style.imageRendering = 'pixelated'
   host.appendChild(app.canvas)
 
-  await Assets.load(['/assets/sprites/room_sheet.png', '/assets/sprites/router_sheet.png'])
+  await Assets.load([ROOM_SHEET_URL, ROUTER_SHEET_URL])
 
   const game = new Game(app)
   game.start()

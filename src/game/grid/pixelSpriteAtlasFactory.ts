@@ -1,4 +1,5 @@
 import { Assets, Rectangle, Texture } from 'pixi.js'
+import { ROOM_SHEET_URL, ROUTER_SHEET_URL } from '../assetPaths'
 
 export type RetroSpriteSheets = {
   roomVariants: Texture[][]
@@ -11,8 +12,8 @@ const ROOM_HEIGHT = 96
 const ROUTER_SIZE = 28
 
 export const createRetroSpriteSheetsFromAtlas = (): RetroSpriteSheets => {
-  const roomSheet = Assets.get('/assets/sprites/room_sheet.png') as Texture | undefined
-  const routerSheet = Assets.get('/assets/sprites/router_sheet.png') as Texture | undefined
+  const roomSheet = Assets.get(ROOM_SHEET_URL) as Texture | undefined
+  const routerSheet = Assets.get(ROUTER_SHEET_URL) as Texture | undefined
 
   if (!roomSheet?.source || !routerSheet?.source) {
     throw new Error('Sprite atlases are not loaded. Load them via Assets.load before creating GridView.')
