@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  background: #05060c;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+}
+
+#app {
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+canvas {
+  max-width: min(100vw, 1280px);
+  max-height: 100vh;
+  border: 2px solid #181d2b;
+  box-shadow: 0 0 0 4px #0b0f18;
+}
