@@ -111,6 +111,30 @@ export class AudioSystem {
     osc.stop(now + 0.1)
   }
 
+  playPauseToggleSfx(reverse = false): void {
+    if (!this.unlocked || !this.context) {
+      return
+    }
+
+    const now = this.context.currentTime
+    const tones = reverse ? [1320, 1100, 920] : [920, 1100, 1320]
+
+    for (let i = 0; i < tones.length; i += 1) {
+      const startAt = now + i * 0.065
+      const osc = this.context.createOscillator()
+      const gain = this.context.createGain()
+      osc.type = 'square'
+      osc.frequency.setValueAtTime(tones[i], startAt)
+      gain.gain.setValueAtTime(0.0001, startAt)
+      gain.gain.exponentialRampToValueAtTime(0.11, startAt + 0.006)
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.055)
+      osc.connect(gain)
+      gain.connect(this.context.destination)
+      osc.start(startAt)
+      osc.stop(startAt + 0.06)
+    }
+  }
+
   startBgm(): void {
     if (!this.unlocked) {
       return
@@ -132,6 +156,5 @@ export class AudioSystem {
       return
     }
     this.bgmAudio.pause()
-    this.bgmAudio.currentTime = 0
   }
 }

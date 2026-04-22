@@ -55,6 +55,7 @@ const bootstrap = async (): Promise<void> => {
   const hud = new DomHud(leftHud, rightHud)
   const game = new Game(app, hud)
   game.start()
+  let spacePressed = false
 
   const startGame = (): void => {
     if (game.isStarted()) {
@@ -85,11 +86,21 @@ const bootstrap = async (): Promise<void> => {
   window.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {
       event.preventDefault()
+      if (event.repeat || spacePressed) {
+        return
+      }
+      spacePressed = true
       togglePause()
       return
     }
     if (event.code === 'KeyR' || event.code === 'Digit1' || event.code === 'Digit2' || event.code === 'Digit3') {
       pauseOverlay.classList.remove('is-visible')
+    }
+  })
+
+  window.addEventListener('keyup', (event) => {
+    if (event.code === 'Space') {
+      spacePressed = false
     }
   })
 }

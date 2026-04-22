@@ -81,6 +81,7 @@ export class Game {
       return
     }
     this.started = true
+    this.audio.playPauseToggleSfx()
     this.startRound()
   }
 
@@ -90,8 +91,10 @@ export class Game {
     }
     this.paused = !this.paused
     if (this.paused) {
+      this.audio.playPauseToggleSfx(false)
       this.audio.stopBgm()
     } else {
+      this.audio.playPauseToggleSfx(true)
       this.audio.startBgm()
     }
     return this.paused
@@ -170,6 +173,9 @@ export class Game {
       if (!this.activeSignals.has(active)) {
         return
       }
+      if (!this.started || this.paused) {
+        return
+      }
       this.matchState.registerCaught()
       if (this.isThreat(type)) {
         this.matchState.addScore(10)
@@ -243,6 +249,9 @@ export class Game {
   }
 
   private onRouterTap(routerId: string): void {
+    if (!this.started || this.paused) {
+      return
+    }
     if (!this.boostedRouterApartment.has(routerId)) {
       return
     }
